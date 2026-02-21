@@ -1,6 +1,6 @@
 # 🤖 YashGPT — Fine-Tuned Mistral 7B for YouTube Comment Responses
 
-A LoRA fine-tuned version of **Mistral-7B-Instruct-v0.2** trained to generate intelligent, context-aware replies to YouTube comments — especially for data science and technical content creators.
+A LoRA fine-tuned version of **TheBloke/Mistral-7B-Instruct-v0.2-GPTQ** trained to generate intelligent, context-aware replies to YouTube comments — especially for data science and technical content creators.
 
 ---
 
@@ -9,7 +9,7 @@ A LoRA fine-tuned version of **Mistral-7B-Instruct-v0.2** trained to generate in
 | Resource | URL |
 |----------|-----|
 | 🧠 Model on Hugging Face | [yashrajkumar623/YashGPT](https://huggingface.co/yashrajkumar623/YashGPT) |
-| 📦 Dataset on Hugging Face | [yashrajkumar623/yashgpt-ft](https://huggingface.co/yashrajkumar623/yashgpt-ft) |
+| 📦 Dataset on Hugging Face | [yashrajkumar623/YashGPT-dataset](https://huggingface.co/yashrajkumar623/yashgpt-ft) |
 
 ---
 
@@ -19,16 +19,16 @@ The model was trained for **10 epochs** with consistent loss reduction across bo
 
 | Epoch | Training Loss | Validation Loss |
 |-------|--------------|-----------------|
-| 1     | 4.2332       | 3.8036          |
-| 2     | 3.4915       | 3.1289          |
-| 3     | 2.9164       | 2.6292          |
-| 4     | 2.4421       | 2.3352          |
-| 5     | 2.2276       | 1.9750          |
-| 6     | 1.7431       | 1.7546          |
-| 7     | 1.5363       | 1.6134          |
-| 8     | 1.4762       | 1.5037          |
-| 9     | 1.3885       | 1.4563          |
-| 10    | 1.2724       | 1.4421          |
+| 1     | 4.141072     | 3.724720        |
+| 2     | 3.415536     | 3.051170        |
+| 3     | 2.832638     | 2.565673        |
+| 4     | 2.374947     | 2.183850        |
+| 5     | 2.071811     | 1.853381        |
+| 6     | 1.605482     | 1.635897        |
+| 7     | 1.395695     | 1.507709        |
+| 8     | 1.384065     | 1.433673        |
+| 9     | 1.327265     | 1.398790        |
+| 10    | 1.213437     | 1.388279        |
 
 ---
 
@@ -61,16 +61,71 @@ The model was trained for **10 epochs** with consistent loss reduction across bo
 
 ---
 
-## 🖥️ Hardware Requirements
+## 🚀 Quick Start
 
-### Training
-- GPU with at least **16GB VRAM** (recommended)
-- CUDA-compatible device
-- Sufficient RAM for model loading
+### 1. Install Dependencies
 
-### Inference
-- GPU with at least **8GB VRAM**
-- Can run on CPU (slower performance)
+```bash
+pip install transformers peft torch accelerate bitsandbytes optimum auto-gptq
+```
+
+### 2. Load the Model
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+base_model = "TheBloke/Mistral-7B-Instruct-v0.2-GPTQ"
+lora_model = "yashrajkumar623/YashGPT"
+
+tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=True)
+model = AutoModelForCausalLM.from_pretrained(
+    base_model,
+    device_map="auto",
+    trust_remote_code=False,
+    revision="main"
+)
+model = PeftModel.from_pretrained(model, lora_model)
+```
+
+### 3. Generate a Response
+
+```python
+instructions_string = """YashGPT, functioning as a virtual data science consultant on YouTube, communicates in clear, accessible language, escalating to technical depth upon request. \
+It reacts to feedback aptly and ends responses with its signature '-YashGPT'. \
+YashGPT will tailor the length of its responses to match the viewer's comment, providing concise acknowledgments to brief expressions of gratitude or feedback, \
+thus keeping the interaction natural and engaging.
+
+Please respond to the following comment.
+"""
+
+prompt_template = lambda comment: f'''[INST] {instructions_string} \n{comment} \n[/INST]'''
+
+comment = "Great content, thank you!"
+prompt = prompt_template(comment)
+
+inputs = tokenizer(prompt, return_tensors="pt")
+outputs = model.generate(input_ids=inputs["input_ids"].to("cuda"), max_new_tokens=140)
+print(tokenizer.batch_decode(outputs)[0])
+```
+
+---
+
+## 🧠 Model Behavior
+
+- **Adaptive Length** — Tailors response length to match the viewer's comment
+- **Technical Depth** — Escalates to technical detail upon request
+- **Signature** — Always ends with `-YashGPT`
+
+---
+
+## 📁 Dataset
+
+The fine-tuning dataset is available at [yashrajkumar623/YashGPT-dataset](https://huggingface.co/yashrajkumar623/yashgpt-ft) on Hugging Face.
+
+- **Split**: Train / Test evaluation
+- **Domain**: YouTube comments from data science and technical content
+- **Field used**: `example` column for tokenization
 
 ---
 
@@ -84,68 +139,12 @@ The model was trained for **10 epochs** with consistent loss reduction across bo
 
 ---
 
-## 🧠 Model Behavior
-
-- **Adaptive Length** — Matches response length to comment complexity
-- **Technical Depth** — Escalates technical detail upon request
-- **Signature** — Always ends with `–Engage-GPT`
-
----
-
 ## ⚠️ Model Limitations
 
 - Optimized specifically for the **YouTube comment format**
-- Requires a **specific prompt template** for best results
+- Requires the **specific prompt template** shown above for best results
 - Performance may vary with **out-of-domain** comments
-
----
-
-## 🚀 Quick Start
-
-### 1. Install Dependencies
-
-```bash
-pip install transformers peft torch accelerate bitsandbytes
-```
-
-### 2. Load the Model
-
-```python
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel
-
-base_model = "mistralai/Mistral-7B-Instruct-v0.2"
-lora_model = "yashrajkumar623/YashGPT"
-
-tokenizer = AutoTokenizer.from_pretrained(base_model)
-model = AutoModelForCausalLM.from_pretrained(base_model, device_map="auto")
-model = PeftModel.from_pretrained(model, lora_model)
-```
-
-### 3. Generate a Response
-
-```python
-prompt = """### Instruction:
-Reply to this YouTube comment as a data science content creator.
-
-### Comment:
-Can you explain overfitting in simple terms?
-
-### Response:"""
-
-inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-output = model.generate(**inputs, max_new_tokens=200)
-print(tokenizer.decode(output[0], skip_special_tokens=True))
-```
-
----
-
-## 📁 Dataset
-
-The fine-tuning dataset is available at [yashrajkumar623/yashgpt-ft](https://huggingface.co/yashrajkumar623/yashgpt-ft) on Hugging Face.
-
-- **Split**: Train / Test evaluation
-- **Domain**: YouTube comments from data science and technical content
+- Base model is GPTQ quantized — requires `auto-gptq` and `optimum` to load
 
 ---
 

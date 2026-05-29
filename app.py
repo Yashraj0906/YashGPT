@@ -1,25 +1,8 @@
-"""
-YashGPT — Interactive Gradio Demo
-==================================
-A Gradio-powered web UI for generating YouTube comment replies
-using the fine-tuned YashGPT model (Mistral-7B + LoRA).
-
-Usage:
-    python app.py
-
-Requirements:
-    - CUDA-compatible GPU (T4 or better)
-    - Dependencies from requirements.txt
-"""
-
 import torch
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
-# ──────────────────────────────────────────────
-# Configuration
-# ──────────────────────────────────────────────
 BASE_MODEL = "TheBloke/Mistral-7B-Instruct-v0.2-GPTQ"
 LORA_ADAPTER = "yashrajkumar623/yashgpt-ft"
 MAX_NEW_TOKENS = 256
@@ -33,10 +16,7 @@ thus keeping the interaction natural and engaging.
 
 Please respond to the following comment."""
 
-# ──────────────────────────────────────────────
-# Model Loading
-# ──────────────────────────────────────────────
-print("🔄 Loading base model...")
+print("Loading base model...")
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, use_fast=True)
 tokenizer.pad_token = tokenizer.eos_token
 
@@ -47,19 +27,17 @@ base_model = AutoModelForCausalLM.from_pretrained(
     revision="main"
 )
 
-print("🔄 Loading LoRA adapter...")
+print("Loading LoRA adapter...")
 model = PeftModel.from_pretrained(base_model, LORA_ADAPTER)
 model.eval()
-print("✅ Model loaded successfully!")
+print("Model loaded successfully!")
 
 
-def format_prompt(comment: str) -> str:
-    """Format a YouTube comment into a Mistral instruction prompt."""
+def format_prompt(comment):
     return f"[INST] {SYSTEM_PROMPT} \n{comment} \n[/INST]"
 
 
-def generate_reply(comment: str, max_tokens: int = MAX_NEW_TOKENS, temperature: float = 0.7) -> str:
-    """Generate a YashGPT reply for a given YouTube comment."""
+def generate_reply(comment, max_tokens=MAX_NEW_TOKENS, temperature=0.7):
     if not comment.strip():
         return "Please enter a comment to get a response."
 
@@ -78,7 +56,6 @@ def generate_reply(comment: str, max_tokens: int = MAX_NEW_TOKENS, temperature: 
             pad_token_id=tokenizer.eos_token_id,
         )
 
-    # Decode and extract only the generated response (after [/INST])
     full_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
     if "[/INST]" in full_output:
         response = full_output.split("[/INST]")[-1].strip()
@@ -88,9 +65,6 @@ def generate_reply(comment: str, max_tokens: int = MAX_NEW_TOKENS, temperature: 
     return response
 
 
-# ──────────────────────────────────────────────
-# Gradio Interface
-# ──────────────────────────────────────────────
 EXAMPLE_COMMENTS = [
     "Great content, thank you!",
     "This was a very thorough introduction to LLMs and answered many questions I had. Thank you.",

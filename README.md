@@ -61,6 +61,7 @@ YashGPT/
 ├── CHANGES.md                      # Changelog of all modifications
 ├── requirements.txt                # Python dependencies
 ├── finetuning_yt.ipynb             # Main fine-tuning notebook (Colab)
+├── inference.ipynb                 # Inference demo with saved outputs
 ├── data/
 │   ├── file.ipynb                  # Data preparation notebook
 │   ├── train.parquet               # Training set (50 examples)
@@ -99,7 +100,12 @@ Open and run `finetuning_yt.ipynb` on Google Colab with a T4 GPU. The notebook h
 4. Saving the adapter to HuggingFace Hub
 
 ### Inference
-The notebook includes inference cells at the end that demonstrate the fine-tuned model generating responses to sample YouTube comments.
+Open `inference.ipynb` on Google Colab with a T4 GPU. This notebook:
+1. Loads the base model with 4-bit quantization (BitsAndBytes)
+2. Applies the trained LoRA adapter from HuggingFace
+3. Generates responses to sample YouTube comments
+
+> **Note:** The notebook includes saved outputs so you can see the model's responses without running it.
 
 ---
 
